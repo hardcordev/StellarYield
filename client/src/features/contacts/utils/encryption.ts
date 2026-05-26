@@ -17,6 +17,10 @@ const ENCRYPTION_ALGORITHM = 'AES-GCM';
 const KEY_LENGTH = 256;
 const IV_LENGTH = 12; // 96 bits for GCM
 
+function asBufferSource(bytes: Uint8Array): BufferSource {
+  return bytes as unknown as BufferSource;
+}
+
 /**
  * Generate an encryption key from a user's wallet address
  * Uses PBKDF2 to derive a deterministic key from the wallet address
@@ -87,10 +91,10 @@ export async function encryptContactData(
     const encryptedBuffer = await crypto.subtle.encrypt(
       {
         name: ENCRYPTION_ALGORITHM,
-        iv,
+        iv: asBufferSource(iv),
       },
       key,
-      dataBytes
+      asBufferSource(dataBytes)
     );
     
     // Combine IV and encrypted data
@@ -130,10 +134,10 @@ export async function decryptContactData(
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: ENCRYPTION_ALGORITHM,
-        iv,
+        iv: asBufferSource(iv),
       },
       key,
-      encrypted
+      asBufferSource(encrypted)
     );
     
     const decoder = new TextDecoder();

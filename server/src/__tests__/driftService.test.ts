@@ -1,6 +1,10 @@
 import { DriftService } from "../services/driftService";
 import { dispatchDriftAlert } from "../services/alertsService";
 
+var mockDriftEventFindFirst: jest.Mock;
+var mockDriftEventCreate: jest.Mock;
+var mockDriftEventUpdate: jest.Mock;
+
 jest.mock("../config/targetAllocations", () => ({
   TARGET_ALLOCATIONS: [
     { vaultId: "VaultA", targetWeight: 0.60, driftThreshold: 0.05 },
@@ -30,7 +34,6 @@ const prismaMock = (PrismaClient as any).__mockInstance;
 const mockDriftEventFindFirst = prismaMock.driftEvent.findFirst;
 const mockDriftEventCreate = prismaMock.driftEvent.create;
 const mockDriftEventUpdate = prismaMock.driftEvent.update;
-
 describe("DriftService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
