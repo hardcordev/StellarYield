@@ -26,6 +26,13 @@ Current CI lint scope is intentionally limited to `src/features/zap` via
 `npm run build` as a diagnostic step to surface TypeScript/Vite errors before
 Vercel.
 
+## Contract Security
+
+Pull requests that touch `contracts/` must pass the checklist in
+[docs/contract-security-checklist.md](./docs/contract-security-checklist.md)
+before review. The checklist covers storage schema changes, authorization checks,
+arithmetic safety, test coverage, and admin permission review.
+
 ## CI Failure Artifacts
 
 If CI fails on your pull request, open the failed workflow run in GitHub Actions and check the **Artifacts** section. Frontend build logs, any generated frontend build output, and contract test logs are uploaded there for short-term debugging.

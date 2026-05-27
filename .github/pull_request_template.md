@@ -22,6 +22,13 @@ Describe how the changes were tested.
 - [ ] Documentation updated
 - [ ] Migrations tested (if applicable)
 
+### Contract Security (if `contracts/` changed)
+- [ ] Storage schema changes documented or migration provided
+- [ ] All entry points have authorization checks
+- [ ] Arithmetic uses checked operations
+- [ ] New entry points have unit tests including unauthorized callers
+- [ ] No new admin roles without governance proposal
+
 ## Screenshots (if applicable)
 Add screenshots to help explain the changes.
 

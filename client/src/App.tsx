@@ -115,7 +115,7 @@ const RootLayout = () => {
       )}
       {/* Navigation Bar */}
       <nav className="glass-panel mx-4 mt-6 px-6 py-4 flex justify-between items-center mb-8 sticky top-4 z-50 shadow-2xl">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30">
             <span className="font-bold text-xl tracking-tighter">SY</span>
           </div>
@@ -124,7 +124,8 @@ const RootLayout = () => {
           </h1>
         </div>
 
-        <div className="flex gap-8 items-center text-sm font-medium text-gray-300">
+        <div className="flex-1 min-w-0 overflow-x-auto nav-links">
+          <div className="flex gap-4 xl:gap-6 items-center text-sm font-medium text-gray-300 px-2">
           <Link
             to="/"
             className="hover:text-white transition-colors flex items-center gap-2"
@@ -293,9 +294,10 @@ const RootLayout = () => {
               <CreditCard size={14} /> Buy USDC
             </button>
           )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           <NotificationBell />
           {isConnected && (
             <button

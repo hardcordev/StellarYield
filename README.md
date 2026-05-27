@@ -133,6 +133,8 @@ Use these values when creating or auditing the Vercel project:
 | Output Directory     | `dist`                                            |
 | Node.js Version      | 20.x                                              |
 
+For a full breakdown of how local, preview, and production environments differ — including backend assumptions and common failure modes — see [docs/deployment-environment-matrix.md](./docs/deployment-environment-matrix.md).
+
 These match the committed [`vercel.json`](./vercel.json) at the repository root. Vercel resolves the install/build/output paths *inside* the configured Root Directory, so leaving the root unset (or pointing it at the repo root) makes Vercel run `npm run build` from a folder that has no `build` script.
 
 ### Troubleshooting
