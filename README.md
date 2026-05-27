@@ -107,7 +107,6 @@ npm run dev
    The mock API will be available at http://localhost:3001
 🌊 Contributing via Drips Wave
 We are proudly participating in the Stellar Wave Program via Drips! We are actively looking for Web3 full-stack and Rust developers.
-Check our open issues labeled Stellar Wave, apply via the Drips App, and submit your PR to earn rewards funded by the Stellar Development Foundation!
+Check our open issues labeled `Stellar Wave`, apply via the Drips App, and submit your PR to earn rewards funded by the Stellar Development Foundation!
 
-Would you like me to walk you through how to connect this finished repository to the Drips Wave App so you can start adding those issues?
-
+Before submitting your PR, please review our [Release Readiness Checklist](./docs/release-checklist.md).

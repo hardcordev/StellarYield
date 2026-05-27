@@ -1,19 +1,10 @@
-This is a fantastic template. It is strict enough to keep the codebase secure, but clear enough that a new contributor knows exactly what is expected of them. 
-
-Since StellarYield is a full-stack application (Frontend, Backend, and Smart Contracts), I have adapted that exact "Access Layer" format to fit your specific repository. 
-
-Here is the polished Markdown. You can paste this directly into a `CONTRIBUTING.md` file in your root directory, or add it as a `## Contributing` section at the bottom of your `README.md`.
-
-***
-
-```markdown
 ## 🤝 Contributing to StellarYield
 
 Thanks for contributing to StellarYield, a Stellar-native DeFi yield aggregator and automated vault system. We rely on the community to help build secure, efficient, and accessible DeFi tools.
 
 ### 🛑 Before You Start
 * **Read the Docs:** Review the `README.md` for overall architecture context.
-* **Claim an Issue:** Browse the active issues (especially those tagged for the Drips Wave) before starting work. Please ask to be assigned before opening a PR.
+* **Claim an Issue:** Browse the active issues (especially those tagged for the Stellar Wave) before starting work. Please ask to be assigned before opening a PR.
 * **Keep it Focused:** Keep Pull Requests limited to one specific feature, bug fix, or contract concern at a time.
 * **Discuss Major Changes:** Start a discussion in the issues tab before changing core architecture, smart contract storage models, or automated routing logic.
 
@@ -37,6 +28,14 @@ cargo test --workspace
 npm run lint
 npm run test
 ```
+
+### 🖼️ UI Snapshot Checklist for Visual Reviews
+If your PR modifies the frontend or introduces new UI components, you **must** provide UI snapshots (screenshots or short screen recordings).
+- **When required:** Any change to CSS, React components, or layout structure.
+- **Viewport checks:** Test and provide screenshots for at least:
+  - Desktop (1024px+ wide)
+  - Mobile (375px wide)
+- **No visual changes?** If your PR touches the `/client` directory but does not change the UI (e.g., refactoring logic, updating API calls), explicitly mention **"No visual changes"** in the PR description.
 
 ### 📜 Core Contribution Rules
 1. **Security First:** Treat vault deposits, withdrawals, fee structures, and rebalancing logic as high-sensitivity areas.
@@ -75,11 +74,3 @@ The fuzzing suite validates the following invariants:
 
 ### ❓ Questions & Scope
 If a change requires touching the client UX, the backend API, *and* the smart contracts, please split that work into separate, sequential Pull Requests to make reviewing easier and safer.
-```
-
-***
-
-### 🏁 Next Step
-Having this in your repo is going to save you so much time answering basic questions from Drips Wave contributors. 
-
-**Would you like me to generate a `pull_request_template.md` file next?** When a contributor opens a PR, GitHub will automatically load the template, forcing them to check off boxes confirming they ran `cargo clippy` and linked the correct issue number!
