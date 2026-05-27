@@ -33,6 +33,31 @@ export interface ReplayResult {
   executionTime: number
 }
 
+export interface ReplayDiscrepancyDetail {
+  code: "ACTION_MISMATCH" | "CONFIDENCE_MISMATCH"
+  field: "recommendedAction" | "confidence"
+  original: string | number
+  replayed: string | number
+  message: string
+}
+
+export interface ReplaySummaryItem {
+  recordId: string
+  strategyId: string
+  executedAt: string
+  recommendedAction: string
+  replayedAction: string
+  isDeterministic: boolean
+  discrepancies: ReplayDiscrepancyDetail[]
+}
+
+export interface ReplaySummaryReport {
+  total: number
+  deterministicCount: number
+  discrepancyCount: number
+  items: ReplaySummaryItem[]
+}
+
 const MAX_RECORDS_PER_STRATEGY = 10000
 const RETENTION_DAYS = 90
 
@@ -115,6 +140,37 @@ export class AuditReplayService {
     }
   }
 
+  async replaySummary(
+    strategyId: string,
+    limit: number = 25
+  ): Promise<ReplaySummaryReport> {
+    const records = this.getStrategyExecutionHistory(strategyId, limit)
+    const items: ReplaySummaryItem[] = []
+    let deterministicCount = 0
+
+    for (const record of records) {
+      const replay = await this.replayExecution(record.id)
+      if (replay.isDeterministic) deterministicCount += 1
+
+      items.push({
+        recordId: record.id,
+        strategyId: record.strategyId,
+        executedAt: record.executedAt.toISOString(),
+        recommendedAction: this.sanitizeText(record.outputs.recommendedAction),
+        replayedAction: this.sanitizeText(replay.replayOutputs.recommendedAction),
+        isDeterministic: replay.isDeterministic,
+        discrepancies: this.findDiscrepancyDetails(record.outputs, replay.replayOutputs),
+      })
+    }
+
+    return {
+      total: items.length,
+      deterministicCount,
+      discrepancyCount: items.length - deterministicCount,
+      items,
+    }
+  }
+
   private async simulateStrategyDecision(
     inputs: StrategyDecisionInputs,
     _scores: Record<string, number>
@@ -160,6 +216,39 @@ export class AuditReplayService {
     }
 
     return discrepancies
+  }
+
+  private findDiscrepancyDetails(
+    original: StrategyDecisionOutputs,
+    replayed: StrategyDecisionOutputs
+  ): ReplayDiscrepancyDetail[] {
+    const details: ReplayDiscrepancyDetail[] = []
+
+    if (original.recommendedAction !== replayed.recommendedAction) {
+      details.push({
+        code: "ACTION_MISMATCH",
+        field: "recommendedAction",
+        original: this.sanitizeText(original.recommendedAction),
+        replayed: this.sanitizeText(replayed.recommendedAction),
+        message: "Recommended action differs between original and replay.",
+      })
+    }
+
+    if (Math.abs(original.confidence - replayed.confidence) > 0.01) {
+      details.push({
+        code: "CONFIDENCE_MISMATCH",
+        field: "confidence",
+        original: Number(original.confidence.toFixed(4)),
+        replayed: Number(replayed.confidence.toFixed(4)),
+        message: "Confidence differs beyond deterministic tolerance (0.01).",
+      })
+    }
+
+    return details
+  }
+
+  private sanitizeText(value: string): string {
+    return value.slice(0, 120)
   }
 
   getStrategyExecutionHistory(

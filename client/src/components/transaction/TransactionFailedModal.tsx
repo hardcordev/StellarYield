@@ -5,14 +5,65 @@
  * message, a suggested fix, and an expandable raw developer log.
  */
 import { useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, Copy, RotateCcw, X } from "lucide-react";
 import type { DecodedError } from "../../utils/errorDecoder";
+import type { TxPhase } from "../../services/transactionPhase";
 
 interface TransactionFailedModalProps {
     /** Decoded error object from `decodeTransactionError`. */
     error: DecodedError;
     /** Called when the user dismisses the modal. */
     onClose: () => void;
+    /** Optional callback to retry the failed action. */
+    onRetry?: () => void;
+    /** Optional callback to open richer transaction details pane. */
+    onViewDetails?: () => void;
+    /** Optional failure phase used to tailor recovery guidance. */
+    failurePhase?: Exclude<TxPhase, "idle" | "success">;
+    /** Whether wallet appears connected at failure time. */
+    walletConnected?: boolean;
+    /** Whether network appears healthy/reachable at failure time. */
+    networkHealthy?: boolean;
+}
+
+function recoveryStepsFor(
+    phase: Exclude<TxPhase, "idle" | "success"> | undefined,
+    walletConnected: boolean,
+    networkHealthy: boolean,
+): string[] {
+    const steps: string[] = [];
+    if (!walletConnected) {
+        steps.push("Reconnect your wallet, then retry the transaction.");
+    }
+    if (!networkHealthy) {
+        steps.push("Switch RPC endpoint or wait for network stability before retrying.");
+    }
+
+    switch (phase) {
+        case "building":
+            steps.push("Refresh vault/route data and rebuild the transaction.");
+            break;
+        case "simulating":
+            steps.push("Lower amount or increase slippage and simulate again.");
+            break;
+        case "waiting_for_wallet":
+            steps.push("Open wallet extension and approve the pending request.");
+            break;
+        case "submitting":
+            steps.push("Retry submission with a fresh signature and sufficient fee balance.");
+            break;
+        case "polling":
+            steps.push("Wait for finality, then check explorer status before resubmitting.");
+            break;
+        case "failure":
+            steps.push("Review the detailed error log to choose the next safe action.");
+            break;
+        default:
+            steps.push("Retry once; if it still fails, copy details and contact support.");
+            break;
+    }
+
+    return [...new Set(steps)].slice(0, 4);
 }
 
 /**
@@ -24,17 +75,54 @@ interface TransactionFailedModalProps {
 export default function TransactionFailedModal({
     error,
     onClose,
+    onRetry,
+    onViewDetails,
+    failurePhase,
+    walletConnected = true,
+    networkHealthy = true,
 }: TransactionFailedModalProps) {
     const [showRaw, setShowRaw] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const recoverySteps = recoveryStepsFor(failurePhase, walletConnected, networkHealthy);
+
+    async function copyDetails() {
+        const payload = [
+            `title=${error.title}`,
+            `code=${error.code ?? "unknown"}`,
+            `phase=${failurePhase ?? "unknown"}`,
+            `walletConnected=${walletConnected}`,
+            `networkHealthy=${networkHealthy}`,
+            `message=${error.message}`,
+            `suggestion=${error.suggestion}`,
+            `raw=${error.raw}`,
+        ].join("\n");
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(payload);
+            } else {
+                const ta = document.createElement("textarea");
+                ta.value = payload;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+            }
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1400);
+        } catch {
+            setCopied(false);
+        }
+    }
 
     return (
         <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="tx-fail-title"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4"
         >
-            <div className="relative w-full max-w-md rounded-2xl bg-gray-900 border border-red-500/40 shadow-2xl shadow-red-900/30 p-6 space-y-4">
+            <div className="relative w-full max-w-xl rounded-2xl bg-gray-900 border border-red-500/40 shadow-2xl shadow-red-900/30 p-4 sm:p-6 space-y-4">
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -73,6 +161,15 @@ export default function TransactionFailedModal({
                     {error.suggestion}
                 </div>
 
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                    <p className="text-sm font-semibold text-white mb-2">Recovery steps</p>
+                    <ul className="space-y-1 text-sm text-gray-300 list-disc pl-5">
+                        {recoverySteps.map((step) => (
+                            <li key={step}>{step}</li>
+                        ))}
+                    </ul>
+                </div>
+
                 {/* Expandable raw log */}
                 <div>
                     <button
@@ -90,13 +187,38 @@ export default function TransactionFailedModal({
                     )}
                 </div>
 
-                {/* Dismiss */}
-                <button
-                    onClick={onClose}
-                    className="w-full py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold transition-all active:scale-95"
-                >
-                    Dismiss
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {onRetry && (
+                        <button
+                            onClick={onRetry}
+                            className="inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all active:scale-95"
+                        >
+                            <RotateCcw size={14} />
+                            Retry
+                        </button>
+                    )}
+                    <button
+                        onClick={copyDetails}
+                        className="inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold transition-all active:scale-95"
+                    >
+                        <Copy size={14} />
+                        {copied ? "Copied" : "Copy details"}
+                    </button>
+                    {onViewDetails && (
+                        <button
+                            onClick={onViewDetails}
+                            className="py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-sm font-semibold transition-all active:scale-95"
+                        >
+                            View details
+                        </button>
+                    )}
+                    <button
+                        onClick={onClose}
+                        className="py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold transition-all active:scale-95"
+                    >
+                        Dismiss
+                    </button>
+                </div>
             </div>
         </div>
     );

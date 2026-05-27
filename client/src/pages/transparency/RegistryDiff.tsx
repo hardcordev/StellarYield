@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import registryJson from '../../../../contracts/registry.json';
 import prevJson from '../../../../contracts/registry.previous.json';
 import StatusBadge from '../../components/StatusBadge';
@@ -32,6 +32,30 @@ function computeDiff() {
 const diff = computeDiff();
 
 export default function RegistryDiffPage() {
+  const [copyState, setCopyState] = useState<Record<string, "idle" | "copied" | "error">>({});
+
+  async function copyAddress(key: string, address: string) {
+    if (!address) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(address);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = address;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopyState((prev) => ({ ...prev, [key]: "copied" }));
+      window.setTimeout(() => {
+        setCopyState((prev) => ({ ...prev, [key]: "idle" }));
+      }, 1500);
+    } catch {
+      setCopyState((prev) => ({ ...prev, [key]: "error" }));
+    }
+  }
+
   return (
     <div className="space-y-6 p-6">
       <h2 className="text-2xl font-bold">Contracts Registry Diff</h2>
@@ -60,8 +84,29 @@ export default function RegistryDiffPage() {
                 </div>
 
                 <div className="text-sm text-gray-300 break-all">
+                  <div><strong>Network:</strong> {net}</div>
+                  <div><strong>Contract type:</strong> {c.name}</div>
                   <div><strong>Old:</strong> {c.oldAddr || <span className="text-gray-500">(empty)</span>}</div>
-                  <div><strong>New:</strong> {c.newAddr || <span className="text-gray-500">(empty)</span>}</div>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <strong>New:</strong> {c.newAddr || <span className="text-gray-500">(empty)</span>}
+                    </div>
+                    {c.newAddr && (
+                      <button
+                        type="button"
+                        onClick={() => copyAddress(`${net}-${c.name}`, c.newAddr)}
+                        className="rounded px-2 py-1 text-xs border border-white/20 hover:border-indigo-400 text-gray-200"
+                      >
+                        Copy
+                      </button>
+                    )}
+                  </div>
+                  {copyState[`${net}-${c.name}`] === "copied" && (
+                    <p className="text-xs text-green-300 mt-1">Copied!</p>
+                  )}
+                  {copyState[`${net}-${c.name}`] === "error" && (
+                    <p className="text-xs text-red-300 mt-1">Copy failed</p>
+                  )}
                 </div>
               </div>
             ))}

@@ -26,6 +26,8 @@ import {
 } from "recharts";
 import { getApiBaseUrl } from "../../lib/api";
 import { parseSmokeRunResult } from "./smokeResults";
+import AuditReplayReportPanel from "./AuditReplayReportPanel";
+import RegistryDiffPage from "./RegistryDiff";
 
 const API_BASE = getApiBaseUrl();
 
@@ -301,6 +303,9 @@ export default function TransparencyDashboard() {
                     </p>
                 )}
             </div>
+
+            <AuditReplayReportPanel />
+            <RegistryDiffPage />
         </div>
     );
 }

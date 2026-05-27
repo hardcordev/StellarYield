@@ -110,6 +110,24 @@ describe('AuditReplayService', () => {
       expect(typeof result.isDeterministic).toBe('boolean')
     })
 
+    it('marks deterministic when replay output matches within tolerance', async () => {
+      const record = service.recordStrategyExecution(
+        'strategy-deterministic',
+        mockInputs,
+        {
+          ...mockOutputs,
+          recommendedAction: 'hold',
+          confidence: 0.85,
+        },
+        mockScores,
+        80
+      )
+
+      const result = await service.replayExecution(record.id)
+      expect(result.isDeterministic).toBe(true)
+      expect(result.discrepancies).toHaveLength(0)
+    })
+
     it('should find discrepancies if outputs differ', async () => {
       const inputs = mockInputs
       const outputs1: StrategyDecisionOutputs = {
@@ -130,6 +148,43 @@ describe('AuditReplayService', () => {
       const result = await service.replayExecution(record.id)
 
       expect(Array.isArray(result.discrepancies)).toBe(true)
+      expect(result.isDeterministic).toBe(false)
+      expect(result.discrepancies.join(' ')).toContain('Action mismatch')
+    })
+  })
+
+  describe('replaySummary', () => {
+    it('reports deterministic and discrepancy counts', async () => {
+      service.recordStrategyExecution(
+        'strategy-summary',
+        mockInputs,
+        {
+          ...mockOutputs,
+          recommendedAction: 'hold',
+          confidence: 0.85,
+        },
+        mockScores,
+        100
+      )
+
+      service.recordStrategyExecution(
+        'strategy-summary',
+        mockInputs,
+        {
+          ...mockOutputs,
+          recommendedAction: 'reduce_exposure',
+          confidence: 0.42,
+        },
+        mockScores,
+        110
+      )
+
+      const report = await service.replaySummary('strategy-summary')
+      expect(report.total).toBe(2)
+      expect(report.deterministicCount).toBe(1)
+      expect(report.discrepancyCount).toBe(1)
+      expect(report.items).toHaveLength(2)
+      expect(report.items.some((item) => item.discrepancies.length > 0)).toBe(true)
     })
   })
 

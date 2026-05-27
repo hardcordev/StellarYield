@@ -4,10 +4,23 @@ import {
   resetRecommendationTimelineStore,
   REASON_CODE_LABELS,
 } from "../services/recommendationTimelineService";
+import {
+  FIXED_BASE_TIME,
+  RECOMMENDATION_FIXTURE_CASES,
+} from "../tests/fixtures/recommendationTimelineFixtures";
 
 describe("recommendationTimelineService", () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(FIXED_BASE_TIME));
+    jest.spyOn(Date, "now").mockReturnValue(1_725_000_000_000);
+    jest.spyOn(Math, "random").mockReturnValue(0.456789);
     resetRecommendationTimelineStore();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
   });
 
   it("stores recommendation history with timestamps", async () => {
@@ -23,7 +36,8 @@ describe("recommendationTimelineService", () => {
       },
     });
 
-    expect(entry.timestamp).toBeTruthy();
+    expect(entry.timestamp).toBe("2026-01-01T00:00:00.000Z");
+    expect(entry.id).toBe("1725000000000-74f01a");
     const timeline = await getRecommendationTimeline("user-1");
     expect(timeline).toHaveLength(1);
     expect(timeline[0].changedInputs).toContain("initial-baseline");
@@ -245,7 +259,7 @@ describe("recommendationTimelineService", () => {
         rationale: "Bulk add.",
         inputSnapshot: {
           riskTolerance: "medium",
-          expectedApy: 5 + Math.random(),
+          expectedApy: 5 + i / 100,
           liquidityDepthUsd: 1_000_000,
           volatilityPct: 5,
         },
@@ -253,5 +267,66 @@ describe("recommendationTimelineService", () => {
     }
     const timeline = getRecommendationTimeline("user-capped");
     expect(timeline.length).toBeLessThanOrEqual(20);
+  });
+
+  it("keeps most recent target vault first", async () => {
+    await recordRecommendation("user-order", {
+      recommendation: "Base recommendation",
+      targetVault: "Blend Stable",
+      rationale: "Start conservatively.",
+      inputSnapshot: {
+        riskTolerance: "conservative",
+        expectedApy: 5.2,
+        liquidityDepthUsd: 1_400_000,
+        volatilityPct: 2.2,
+      },
+    });
+    await recordRecommendation("user-order", {
+      recommendation: "Volatility hedge recommendation",
+      targetVault: "DeFindex Shield",
+      rationale: "Market has become unstable.",
+      inputSnapshot: {
+        riskTolerance: "conservative",
+        expectedApy: 4.5,
+        liquidityDepthUsd: 1_360_000,
+        volatilityPct: 3.5,
+      },
+    });
+
+    const timeline = getRecommendationTimeline("user-order");
+    expect(timeline[0]?.targetVault).toBe("DeFindex Shield");
+    expect(timeline[1]?.targetVault).toBe("Blend Stable");
+  });
+
+  describe("deterministic fixture matrix", () => {
+    it.each(RECOMMENDATION_FIXTURE_CASES)(
+      "asserts reason codes and target vault changes for $profile profile",
+      async ({ initial, transitions }) => {
+        const userId = `fixture-${initial.profile}`;
+        await recordRecommendation(userId, {
+          recommendation: initial.recommendation,
+          targetVault: initial.targetVault,
+          rationale: initial.rationale,
+          inputSnapshot: initial.inputSnapshot,
+        });
+
+        for (const step of transitions) {
+          const entry = await recordRecommendation(userId, {
+            recommendation: step.next.recommendation,
+            targetVault: step.next.targetVault,
+            rationale: step.next.rationale,
+            inputSnapshot: step.next.inputSnapshot,
+          });
+
+          const codes = entry.reasonCodes.map((rc) => rc.code);
+          expect(codes).toEqual(expect.arrayContaining(step.expectedReasonCodes));
+          expect(entry.targetVault).toBe(step.next.targetVault);
+        }
+
+        const timeline = getRecommendationTimeline(userId);
+        expect(timeline[0]?.targetVault).toBe(transitions[transitions.length - 1].next.targetVault);
+        expect(timeline[timeline.length - 1]?.targetVault).toBe(initial.targetVault);
+      },
+    );
   });
 });
