@@ -38,10 +38,9 @@ import WalletSessionReview from "./auth/WalletSessionReview";
 import { useWallet } from "./context/useWallet";
 import RouteBoundary from "./components/common/RouteBoundary";
 import {
-  LayoutDashboard,
-  ShieldCheck,
-  Users,
+  Landmark,
   Zap,
+  BarChart3,
   Menu,
   X,
   Settings,
@@ -110,9 +109,9 @@ const RootLayout = () => {
       {!isHomePage && (
         <nav className="app-nav glass-panel mx-3 mt-4 px-4 py-3.5 flex justify-between items-center mb-6 sticky top-3 z-50 shadow-2xl">
           <div className="flex items-center gap-2 shrink-0">
-            <div className="bg-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-              <span className="font-bold text-sm tracking-tighter text-white">SY</span>
-            </div>
+            <svg viewBox="0 0 256 256" fill="none" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 0 256 L 0 128 L 128 128 Z M 128 256 L 128 128 L 256 128 Z M 0 128 L 0 0 L 128 0 Z M 128 128 L 128 0 L 256 0 Z" fill="rgb(84, 84, 84)"></path>
+            </svg>
             <h1 className="text-base font-bold tracking-wide text-slate-900">
               Stellar Yield
             </h1>
@@ -120,17 +119,14 @@ const RootLayout = () => {
 
           <div className="hidden md:flex flex-1 min-w-0 nav-links">
             <div className="flex gap-4 xl:gap-5 items-center text-[0.82rem] font-semibold text-slate-600 px-4">
-              <a href="/#features" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-                <Zap size={15} /> Features
-              </a>
               <Link to="/" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-                <LayoutDashboard size={15} /> About
+                <Landmark size={15} /> Yield Vaults
               </Link>
               <Link to="/" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-                <ShieldCheck size={15} /> Safety
+                <Zap size={15} /> Strategies
               </Link>
               <Link to="/" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-                <Users size={15} /> Contact
+                <BarChart3 size={15} /> APY Compare
               </Link>
             </div>
           </div>
@@ -208,10 +204,9 @@ const RootLayout = () => {
             </div>
 
             {/* Primary routes */}
-            <a href="/#features" className="drawer-link"><Zap size={16} /> Features</a>
-            <Link to="/" className="drawer-link"><LayoutDashboard size={16} /> About</Link>
-            <Link to="/" className="drawer-link"><ShieldCheck size={16} /> Safety</Link>
-            <Link to="/" className="drawer-link"><Users size={16} /> Contact</Link>
+            <Link to="/" className="drawer-link"><Landmark size={16} /> Yield Vaults</Link>
+            <Link to="/" className="drawer-link"><Zap size={16} /> Strategies</Link>
+            <Link to="/" className="drawer-link"><BarChart3 size={16} /> APY Compare</Link>
           </nav>
         </div>
       )}

@@ -6,6 +6,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import ConnectWalletButton from "./wallet/ConnectWalletButton";
 
 export default function Dashboard() {
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
@@ -25,18 +26,17 @@ export default function Dashboard() {
           {/* Header Navbar inside the Hero shell */}
           <div className="hero-topbar">
             <Link to="/" className="hero-brand" aria-label="StellarYield home">
-              <span className="hero-brand-mark">SY</span>
+              <svg viewBox="0 0 256 256" fill="none" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 0 256 L 0 128 L 128 128 Z M 128 256 L 128 128 L 256 128 Z M 0 128 L 0 0 L 128 0 Z M 128 128 L 128 0 L 256 0 Z" fill="rgb(84, 84, 84)"></path>
+              </svg>
               <span>StellarYield</span>
             </Link>
             <div className="hero-nav" aria-label="Featured routes">
-              <a href="#features">Features</a>
-              <Link to="/">About</Link>
-              <Link to="/">Safety</Link>
-              <Link to="/">Contact</Link>
+              <Link to="/">Yield Vaults</Link>
+              <Link to="/">Strategies</Link>
+              <Link to="/">APY Compare</Link>
             </div>
-            <Link to="/" className="hero-call-button">
-              Launch App
-            </Link>
+            <ConnectWalletButton />
           </div>
 
           <div className="hero-copy">
@@ -56,9 +56,7 @@ export default function Dashboard() {
 
             <div className="hero-actions-container">
               <div className="hero-actions">
-                <Link to="/" className="primary-action">
-                  Launch App
-                </Link>
+                <ConnectWalletButton />
                 <a href="#features" className="secondary-action">
                   Learn More
                 </a>
@@ -213,7 +211,9 @@ export default function Dashboard() {
         <div className="footer-top">
           <div className="footer-brand-column">
             <Link to="/" className="hero-brand" style={{ padding: 0 }}>
-              <span className="hero-brand-mark">SY</span>
+              <svg viewBox="0 0 256 256" fill="none" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 0 256 L 0 128 L 128 128 Z M 128 256 L 128 128 L 256 128 Z M 0 128 L 0 0 L 128 0 Z M 128 128 L 128 0 L 256 0 Z" fill="rgb(84, 84, 84)"></path>
+              </svg>
               <span>StellarYield</span>
             </Link>
             <p className="footer-desc">
