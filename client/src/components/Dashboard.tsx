@@ -5,6 +5,8 @@ import { YieldFlowCanvas } from "./visualizations";
 import MempoolVisualizer from "./mempool_graph/MempoolVisualizer";
 import CorrelationHeatmap from "./charts/CorrelationHeatmap";
 import { apiUrl } from "../lib/api";
+import { useBackendStatus } from "../hooks/useBackendStatus";
+import { BackendUnavailableAlert } from "./BackendUnavailable";
 import ApyAttribution from "../features/yields/ApyAttribution";
 
 interface YieldData {
@@ -24,11 +26,15 @@ interface YieldData {
 export default function Dashboard() {
   const [yields, setYields] = useState<YieldData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(true);
+  const backendStatus = useBackendStatus();
 
   const toggleRow = (index: number) => {
     setExpandedRows((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+
+  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     fetch(apiUrl("/api/yields"))
@@ -39,6 +45,7 @@ export default function Dashboard() {
       })
       .catch((err) => {
         console.error("Failed to fetch yields", err);
+        setError("Unable to fetch yield data from backend");
         setLoading(false);
       });
   }, []);
@@ -53,6 +60,13 @@ export default function Dashboard() {
           Optimize your returns across the Stellar ecosystem
         </p>
       </header>
+
+      {error && showError && backendStatus === "unavailable" && (
+        <BackendUnavailableAlert
+          message="Yield data is currently unavailable. Showing cached or offline data if available."
+          onDismiss={() => setShowError(false)}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="glass-card border-l-4 border-[#6C5DD3] p-6">

@@ -12,6 +12,8 @@ import {
   Percent,
 } from 'lucide-react';
 import { apiUrl } from '../../lib/api';
+import { useBackendStatus } from '../../hooks/useBackendStatus';
+import { BackendUnavailable } from '../../components/BackendUnavailable';
 
 interface StrategyYield {
   protocolName: string;
@@ -44,6 +46,7 @@ export default function StrategyComparison() {
   const [data, setData] = useState<StrategyYield[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const backendStatus = useBackendStatus();
 
   const fetchStrategies = async () => {
     try {
@@ -68,6 +71,22 @@ export default function StrategyComparison() {
   useEffect(() => {
     fetchStrategies();
   }, []);
+
+  // Show backend unavailable state if backend is down
+  if (backendStatus === "unavailable" && !data.length) {
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <header className="mb-6">
+          <h2 className="text-4xl font-extrabold tracking-tight mb-2">Strategy Comparison</h2>
+        </header>
+        <BackendUnavailable 
+          featureName="Strategy Comparison"
+          reason="Unable to fetch strategy data. The backend service is currently unavailable."
+          onRetry={fetchStrategies}
+        />
+      </div>
+    );
+  }
 
   if (error) {
     return (
