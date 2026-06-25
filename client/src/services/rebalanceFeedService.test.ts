@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { RebalanceFeedService } from "../rebalanceFeedService";
+import { RebalanceFeedService } from "./rebalanceFeedService";
 import type { RebalanceEvent, RebalanceTriggerReason } from "../../../shared/types/rebalanceEvent";
 
 // Mock fetch
@@ -66,7 +66,8 @@ describe("RebalanceFeedService", () => {
       const result = await RebalanceFeedService.fetchRebalanceEvents();
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/rebalances")
+        expect.stringContaining("/api/rebalances"),
+        expect.any(Object)
       );
       expect(result.events).toHaveLength(1);
       expect(result.total).toBe(1);
@@ -88,7 +89,8 @@ describe("RebalanceFeedService", () => {
       await RebalanceFeedService.fetchRebalanceEvents({ vaultId: "vault-456" });
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("vaultId=vault-456")
+        expect.stringContaining("vaultId=vault-456"),
+        expect.any(Object)
       );
     });
 
@@ -111,7 +113,8 @@ describe("RebalanceFeedService", () => {
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("limit=20") &&
-          expect.stringContaining("offset=40")
+          expect.stringContaining("offset=40"),
+        expect.any(Object)
       );
       expect(global.fetch).toHaveBeenCalled();
     });
@@ -157,7 +160,8 @@ describe("RebalanceFeedService", () => {
       );
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("vault-123/recent")
+        expect.stringContaining("vault-123/recent"),
+        expect.any(Object)
       );
       expect(result.events).toHaveLength(1);
       expect(result.vaultId).toBe("vault-123");
@@ -178,7 +182,8 @@ describe("RebalanceFeedService", () => {
       await RebalanceFeedService.fetchRecentRebalances("vault-123", 5);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("limit=5")
+        expect.stringContaining("limit=5"),
+        expect.any(Object)
       );
     });
   });
@@ -201,7 +206,8 @@ describe("RebalanceFeedService", () => {
       const result = await RebalanceFeedService.fetchRebalanceStats("vault-123");
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("vault-123/stats")
+        expect.stringContaining("vault-123/stats"),
+        expect.any(Object)
       );
       expect(result.totalRebalances).toBe(10);
       expect(result.averageApyImprovement).toBe(0.35);
@@ -209,8 +215,11 @@ describe("RebalanceFeedService", () => {
   });
 
   describe("startPolling", () => {
-    it("should start polling for new events at specified interval", () => {
+    it("should start polling for new events at specified interval", async () => {
       vi.useFakeTimers();
+      // Set fake time to before the mock event's timestamp (2024-01-15) so events
+      // pass the "newer than lastTimestamp" filter inside startPolling.
+      vi.setSystemTime(new Date("2024-01-14T00:00:00Z"));
 
       const mockResponse = {
         vaultId: "vault-123",
@@ -230,22 +239,27 @@ describe("RebalanceFeedService", () => {
         10000
       );
 
+      // poll() is async — flush the microtask queue before asserting
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+
       // Initial poll should happen immediately
       expect(onUpdate).toHaveBeenCalled();
 
-      // Fast-forward time to trigger next poll
+      // Fast-forward time to trigger next poll and flush its microtasks
       vi.advanceTimersByTime(10000);
+      for (let i = 0; i < 5; i++) await Promise.resolve();
       expect(onUpdate).toHaveBeenCalledTimes(2);
 
       // Unsubscribe and verify no more calls
       unsubscribe();
       vi.advanceTimersByTime(10000);
+      for (let i = 0; i < 5; i++) await Promise.resolve();
       expect(onUpdate).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();
     });
 
-    it("should filter to only new events since last poll", () => {
+    it("should filter to only new events since last poll", async () => {
       vi.useFakeTimers();
 
       const now = new Date();
@@ -281,11 +295,15 @@ describe("RebalanceFeedService", () => {
         10000
       );
 
+      // poll() is async — flush microtasks before asserting
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+
       // First call includes both events
       expect(onUpdate).toHaveBeenCalledTimes(1);
 
-      // Advance time and trigger next poll
+      // Advance time and trigger next poll, then flush
       vi.advanceTimersByTime(10000);
+      for (let i = 0; i < 5; i++) await Promise.resolve();
 
       // Second call should only include new event
       expect(onUpdate).toHaveBeenCalledTimes(2);
@@ -294,7 +312,7 @@ describe("RebalanceFeedService", () => {
       vi.useRealTimers();
     });
 
-    it("should handle errors during polling gracefully", () => {
+    it("should handle errors during polling gracefully", async () => {
       vi.useFakeTimers();
 
       (global.fetch as any).mockRejectedValue(new Error("Network error"));
@@ -305,6 +323,9 @@ describe("RebalanceFeedService", () => {
         onUpdate,
         10000
       );
+
+      // poll() is async — flush microtasks before asserting
+      for (let i = 0; i < 5; i++) await Promise.resolve();
 
       // Should call with empty events and error flag
       expect(onUpdate).toHaveBeenCalledWith([], true);

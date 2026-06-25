@@ -3,12 +3,12 @@
  * Provides utilities for both one-time fetch and real-time polling.
  */
 
-import { apiUrl } from "../lib/api";
+import { apiUrl, apiFetch } from "../lib/api";
 import type {
   RebalanceEvent,
   RebalanceFeedOptions,
   RebalanceFeedResponse,
-} from "../../shared/types/rebalanceEvent";
+} from "../../../shared/types/rebalanceEvent";
 
 export class RebalanceFeedService {
   /**
@@ -24,7 +24,7 @@ export class RebalanceFeedService {
     if (options.offset) params.append("offset", options.offset.toString());
     if (options.triggerReason) params.append("triggerReason", options.triggerReason);
 
-    const response = await fetch(apiUrl(`/api/rebalances?${params}`));
+    const response = await apiFetch(apiUrl(`/api/rebalances?${params}`));
 
     if (!response.ok) {
       throw new Error(
@@ -47,7 +47,7 @@ export class RebalanceFeedService {
     events: RebalanceEvent[];
     timestamp: string;
   }> {
-    const response = await fetch(
+    const response = await apiFetch(
       apiUrl(`/api/rebalances/${vaultId}/recent?limit=${limit}`)
     );
 
@@ -64,7 +64,7 @@ export class RebalanceFeedService {
    * Fetch rebalance statistics for a vault.
    */
   static async fetchRebalanceStats(vaultId: string): Promise<any> {
-    const response = await fetch(apiUrl(`/api/rebalances/${vaultId}/stats`));
+    const response = await apiFetch(apiUrl(`/api/rebalances/${vaultId}/stats`));
 
     if (!response.ok) {
       throw new Error(

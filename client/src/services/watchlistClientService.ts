@@ -3,14 +3,14 @@
  * Handles API communication for CRUD operations and threshold checks.
  */
 
-import { apiUrl } from "../lib/api";
+import { apiUrl, apiFetch } from "../lib/api";
 import type {
   YieldOpportunityWatchItem,
   WatchlistItem,
   WatchlistResponse,
   ThresholdRule,
   ThresholdCheckResult,
-} from "../../shared/types/watchlist";
+} from "../../../shared/types/watchlist";
 
 export class WatchlistClientService {
   private static readonly baseUrl = "/api/watchlist";
@@ -19,7 +19,7 @@ export class WatchlistClientService {
    * Get user's watchlist with summary
    */
   static async getWatchlist(): Promise<WatchlistResponse> {
-    const response = await fetch(apiUrl(this.baseUrl));
+    const response = await apiFetch(apiUrl(this.baseUrl));
 
     if (!response.ok) {
       throw new Error(`Failed to fetch watchlist: ${response.statusText}`);
@@ -43,7 +43,7 @@ export class WatchlistClientService {
     }>;
     total: number;
   }> {
-    const response = await fetch(apiUrl(`${this.baseUrl}/alerts`));
+    const response = await apiFetch(apiUrl(`${this.baseUrl}/alerts`));
 
     if (!response.ok) {
       throw new Error(`Failed to fetch alerts: ${response.statusText}`);
@@ -62,7 +62,7 @@ export class WatchlistClientService {
     currentApy: number,
     currentTvl: number
   ): Promise<YieldOpportunityWatchItem> {
-    const response = await fetch(apiUrl(this.baseUrl), {
+    const response = await apiFetch(apiUrl(this.baseUrl), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -85,7 +85,7 @@ export class WatchlistClientService {
    * Remove an opportunity from watchlist
    */
   static async removeFromWatchlist(itemId: string): Promise<void> {
-    const response = await fetch(apiUrl(`${this.baseUrl}/${itemId}`), {
+    const response = await apiFetch(apiUrl(`${this.baseUrl}/${itemId}`), {
       method: "DELETE",
     });
 
@@ -108,7 +108,7 @@ export class WatchlistClientService {
     value: number,
     triggerOnce?: boolean
   ): Promise<ThresholdRule> {
-    const response = await fetch(apiUrl(`${this.baseUrl}/${itemId}/rules`), {
+    const response = await apiFetch(apiUrl(`${this.baseUrl}/${itemId}/rules`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type, value, triggerOnce }),
@@ -125,7 +125,7 @@ export class WatchlistClientService {
    * Remove a threshold rule
    */
   static async removeThresholdRule(itemId: string, ruleId: string): Promise<void> {
-    const response = await fetch(
+    const response = await apiFetch(
       apiUrl(`${this.baseUrl}/${itemId}/rules/${ruleId}`),
       {
         method: "DELETE",
@@ -146,7 +146,7 @@ export class WatchlistClientService {
     currentTvl: number,
     spreadChange?: number
   ): Promise<{ checks: ThresholdCheckResult[]; triggeredCount: number }> {
-    const response = await fetch(apiUrl(`${this.baseUrl}/${itemId}/check`), {
+    const response = await apiFetch(apiUrl(`${this.baseUrl}/${itemId}/check`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -167,7 +167,7 @@ export class WatchlistClientService {
    * Acknowledge an alert
    */
   static async acknowledgeAlert(itemId: string, ruleId: string): Promise<void> {
-    const response = await fetch(
+    const response = await apiFetch(
       apiUrl(`${this.baseUrl}/${itemId}/alerts/${ruleId}/acknowledge`),
       {
         method: "POST",
@@ -190,7 +190,7 @@ export class WatchlistClientService {
       spreadChange?: number;
     }>
   ): Promise<{ checked: number; triggeredCount: number; results: ThresholdCheckResult[] }> {
-    const response = await fetch(apiUrl(`${this.baseUrl}/batch/check`), {
+    const response = await apiFetch(apiUrl(`${this.baseUrl}/batch/check`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items }),

@@ -59,3 +59,14 @@ export function apiUrl(path: string, env?: ImportMetaEnv): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${getApiBaseUrl(env)}${normalizedPath}`;
 }
+
+/**
+ * fetch wrapper that automatically injects a fresh X-Correlation-ID header
+ * on every outbound API request so that server request logs can be matched
+ * to the originating client action.
+ */
+export function apiFetch(input: string, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  headers.set("x-correlation-id", crypto.randomUUID());
+  return fetch(input, { ...init, headers });
+}

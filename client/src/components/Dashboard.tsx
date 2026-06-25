@@ -1,5 +1,6 @@
 import React, { useEffect, useState, Suspense } from "react";
-import { Activity, ArrowUpRight, ShieldCheck, TrendingUp } from "lucide-react";
+import { Activity, ArrowUpRight, ShieldCheck, TrendingUp, Gauge, Network, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import ApyHistoryChart from "./charts/ApyHistoryChart";
 import { YieldFlowCanvas } from "./visualizations";
 import MempoolVisualizer from "./mempool_graph/MempoolVisualizer";
@@ -8,6 +9,7 @@ import { apiUrl } from "../lib/api";
 import { useBackendStatus } from "../hooks/useBackendStatus";
 import { BackendUnavailableAlert } from "./BackendUnavailable";
 import ApyAttribution from "../features/yields/ApyAttribution";
+import ConnectWalletButton from "./wallet/ConnectWalletButton";
 
 interface YieldData {
   protocol: string;
@@ -29,6 +31,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [showError, setShowError] = useState(true);
   const backendStatus = useBackendStatus();
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+  const [chartHovered, setChartHovered] = useState(false);
 
   const toggleRow = (index: number) => {
     setExpandedRows((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -49,19 +53,6 @@ export default function Dashboard() {
         setLoading(false);
       });
   }, []);
-import { useState } from "react";
-import {
-  Gauge,
-  Network,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import ConnectWalletButton from "./wallet/ConnectWalletButton";
-
-export default function Dashboard() {
-  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
-  const [chartHovered, setChartHovered] = useState(false);
 
   return (
     <div className="home-experience">
@@ -86,6 +77,11 @@ export default function Dashboard() {
                 TOTAL VALUE LOCKED
               </p>
               <h3 className="mt-1 text-3xl font-bold shadow-sm">$4,250,000</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main floating card board */}
       <div className="home-card-wrapper">
         <section className="hero-shell">

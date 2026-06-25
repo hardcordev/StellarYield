@@ -3,6 +3,7 @@ import {
   apiUrl,
   getApiBaseUrl,
   getApiBaseUrlState,
+  apiFetch,
 } from "./api";
 
 describe("api URL helpers", () => {
@@ -71,5 +72,56 @@ describe("api URL helpers", () => {
     });
     expect(getApiBaseUrl(env({}))).toBe("");
     expect(apiUrl("/api/yields", env({}))).toBe("/api/yields");
+  });
+});
+
+describe("apiFetch", () => {
+  beforeEach(() => {
+    // crypto.randomUUID is not available in jsdom's non-secure context
+    vi.stubGlobal("crypto", { randomUUID: () => "test-uuid-1234-5678-abcd" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200 }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("injects x-correlation-id header on every request", async () => {
+    await apiFetch("http://localhost:3001/api/fees");
+
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(init.headers as HeadersInit);
+    expect(headers.get("x-correlation-id")).toBe("test-uuid-1234-5678-abcd");
+  });
+
+  it("uses a UUID from crypto.randomUUID for the correlation ID", async () => {
+    await apiFetch("/api/test");
+
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(init.headers as HeadersInit);
+    expect(headers.get("x-correlation-id")).toBe("test-uuid-1234-5678-abcd");
+  });
+
+  it("merges caller-supplied headers without dropping them", async () => {
+    await apiFetch("/api/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(init.headers as HeadersInit);
+    expect(headers.get("content-type")).toBe("application/json");
+    expect(headers.get("x-correlation-id")).toBe("test-uuid-1234-5678-abcd");
+  });
+
+  it("preserves other init options (method, body)", async () => {
+    await apiFetch("/api/test", {
+      method: "DELETE",
+      body: "payload",
+    });
+
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect((init as any).method).toBe("DELETE");
+    expect((init as any).body).toBe("payload");
   });
 });

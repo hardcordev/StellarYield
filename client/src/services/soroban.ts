@@ -9,6 +9,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import freighter from "@stellar/freighter-api";
 import type { TxPhase } from "./transactionPhase";
 import { resolveDeadlineSeconds, type TxSettings } from "../features/settings/types";
+import { apiFetch } from "../lib/api";
 
 // ── Configuration ───────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ function getServer(): StellarSdk.rpc.Server {
 
 async function getRecommendedBaseFee(priority: FeePriority = "average"): Promise<string> {
   try {
-    const response = await fetch("/api/fees");
+    const response = await apiFetch("/api/fees");
     if (!response.ok) {
       return StellarSdk.BASE_FEE;
     }
@@ -242,7 +243,7 @@ export async function executeContractCall(
     let finalXdr = signedXdr;
     if (useFeeBump) {
       onPhase?.("submitting");
-      const resp = await fetch("/api/relayer/fee-bump", {
+      const resp = await apiFetch("/api/relayer/fee-bump", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ innerTxXdr: signedXdr }),
@@ -288,7 +289,7 @@ export async function executeZapContractCall(
     let finalXdr = signedXdr;
     if (useFeeBump) {
       onPhase?.("submitting");
-      const resp = await fetch("/api/relayer/fee-bump", {
+      const resp = await apiFetch("/api/relayer/fee-bump", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ innerTxXdr: signedXdr }),

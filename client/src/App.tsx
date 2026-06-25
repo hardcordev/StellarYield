@@ -7,34 +7,43 @@ import {
 } from "react-router-dom";
 import { lazy, useState } from "react";
 import Dashboard from "./components/Dashboard";
-const ApyDashboard = lazy(() => import("./components/dashboard/ApyDashboard"));
-import AIAdvisor from "./components/AIAdvisor";
 import Vault from "./components/Vault";
+const ApyDashboard = lazy(() => import("./components/dashboard/ApyDashboard"));
+const AIAdvisor = lazy(() => import("./components/AIAdvisor"));
 const PortfolioPage = lazy(() => import("./components/portfolio/PortfolioPage"));
 const GovernanceDashboard = lazy(
   () => import("./pages/governance/GovernanceDashboard"),
 );
-import QuestsDashboard from "./pages/quests/QuestsDashboard";
-import ConnectWalletButton from "./components/wallet/ConnectWalletButton";
-import NotificationBell from "./components/Navigation/NotificationBell";
-import Leaderboard from "./pages/leaderboard/Leaderboard";
-import OnRampModal from "./features/onramp/OnRampModal";
-import ClaimRewards from "./features/rewards/ClaimRewards";
-import PnLChart from "./features/pnl/PnLChart";
-import TaxExport from "./features/taxes/TaxExport";
-import ReferralDashboard from "./features/referrals/ReferralDashboard";
-import VestingDashboard from "./pages/vesting/VestingDashboard";
+const QuestsDashboard = lazy(() => import("./pages/quests/QuestsDashboard"));
+const Leaderboard = lazy(() => import("./pages/leaderboard/Leaderboard"));
+const ClaimRewards = lazy(() => import("./features/rewards/ClaimRewards"));
+const PnLChart = lazy(() => import("./features/pnl/PnLChart"));
+const TaxExport = lazy(() => import("./features/taxes/TaxExport"));
+const ReferralDashboard = lazy(() => import("./features/referrals/ReferralDashboard"));
+const VestingDashboard = lazy(() => import("./pages/vesting/VestingDashboard"));
 const TransparencyDashboard = lazy(
   () => import("./pages/transparency/TransparencyDashboard"),
 );
-import RiskChronology from "./pages/transparency/RiskChronology";
-import RelayerStatusPage from "./pages/transparency/RelayerStatusPage";
+const RiskChronology = lazy(() => import("./pages/transparency/RiskChronology"));
+const RelayerStatusPage = lazy(() => import("./pages/transparency/RelayerStatusPage"));
 const StressTestDashboard = lazy(() => import("./pages/StressTestDashboard"));
-import YieldForGood from "./features/donations/YieldForGood";
-import YieldCalculator from "./components/calculator/YieldCalculator";
-import StrategyLeaderboard from "./pages/leaderboard/StrategyLeaderboard";
-import TreasurySimulation from "./pages/treasury/TreasurySimulation";
-import WalletSessionReview from "./auth/WalletSessionReview";
+const YieldForGood = lazy(() => import("./features/donations/YieldForGood"));
+const YieldCalculator = lazy(() => import("./components/calculator/YieldCalculator"));
+const StrategyComparison = lazy(() => import("./pages/strategy/StrategyComparison"));
+const StrategyLeaderboard = lazy(() => import("./pages/leaderboard/StrategyLeaderboard"));
+const TreasurySimulation = lazy(() => import("./pages/treasury/TreasurySimulation"));
+const WalletSessionReview = lazy(() => import("./auth/WalletSessionReview"));
+const FragmentationDashboard = lazy(() =>
+  import("./features/fragmentation").then((m) => ({ default: m.FragmentationDashboard })),
+);
+const ReallocationTimelinePlanner = lazy(() =>
+  import("./portfolio/ReallocationTimelinePlanner").then((m) => ({
+    default: m.ReallocationTimelinePlanner,
+  })),
+);
+import ConnectWalletButton from "./components/wallet/ConnectWalletButton";
+import NotificationBell from "./components/Navigation/NotificationBell";
+import OnRampModal from "./features/onramp/OnRampModal";
 import { useWallet } from "./context/useWallet";
 import RouteBoundary from "./components/common/RouteBoundary";
 import {
@@ -49,9 +58,6 @@ import {
 import "./index.css";
 import SettingsModal from "./features/settings/SettingsModal";
 import AlertsModal from "./features/alerts/AlertsModal";
-import StrategyComparison from "./pages/strategy/StrategyComparison";
-import { FragmentationDashboard } from "./features/fragmentation";
-import { ReallocationTimelinePlanner } from "./portfolio/ReallocationTimelinePlanner";
 
 // Vault IDs available for APY alerts (matches protocol names from yieldService)
 const VAULT_OPTIONS = ["Blend", "Soroswap", "DeFindex"];
@@ -239,7 +245,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/ai-advisor",
-        element: <AIAdvisor />,
+        element: (
+          <RouteBoundary>
+            <AIAdvisor />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/stress",
@@ -259,7 +269,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/strategy",
-        element: <StrategyComparison />,
+        element: (
+          <RouteBoundary>
+            <StrategyComparison />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/portfolio",
@@ -271,15 +285,27 @@ const router = createBrowserRouter([
       },
       {
         path: "/calculator",
-        element: <YieldCalculator />,
+        element: (
+          <RouteBoundary>
+            <YieldCalculator />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/planner",
-        element: <GoalPlannerPage />,
+        element: (
+          <RouteBoundary>
+            <GoalPlannerPage />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/fragmentation",
-        element: <FragmentationDashboard />,
+        element: (
+          <RouteBoundary>
+            <FragmentationDashboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/governance",
@@ -291,31 +317,59 @@ const router = createBrowserRouter([
       },
       {
         path: "/quests",
-        element: <QuestsDashboard />,
+        element: (
+          <RouteBoundary>
+            <QuestsDashboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/leaderboard",
-        element: <Leaderboard />,
+        element: (
+          <RouteBoundary>
+            <Leaderboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/rewards",
-        element: <ClaimRewards />,
+        element: (
+          <RouteBoundary>
+            <ClaimRewards />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/pnl",
-        element: <PnLChart />,
+        element: (
+          <RouteBoundary>
+            <PnLChart />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/taxes",
-        element: <TaxExport />,
+        element: (
+          <RouteBoundary>
+            <TaxExport />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/referrals",
-        element: <ReferralDashboard />,
+        element: (
+          <RouteBoundary>
+            <ReferralDashboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/vesting",
-        element: <VestingDashboard />,
+        element: (
+          <RouteBoundary>
+            <VestingDashboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/transparency",
@@ -327,27 +381,51 @@ const router = createBrowserRouter([
       },
       {
         path: "/transparency/incidents",
-        element: <RiskChronology />,
+        element: (
+          <RouteBoundary>
+            <RiskChronology />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/transparency/relayer",
-        element: <RelayerStatusPage />,
+        element: (
+          <RouteBoundary>
+            <RelayerStatusPage />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/yield-for-good",
-        element: <YieldForGood />,
+        element: (
+          <RouteBoundary>
+            <YieldForGood />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/strategy-leaderboard",
-        element: <StrategyLeaderboard />,
+        element: (
+          <RouteBoundary>
+            <StrategyLeaderboard />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/wallet-session",
-        element: <WalletSessionReview />,
+        element: (
+          <RouteBoundary>
+            <WalletSessionReview />
+          </RouteBoundary>
+        ),
       },
       {
         path: "/treasury",
-        element: <TreasurySimulation />,
+        element: (
+          <RouteBoundary>
+            <TreasurySimulation />
+          </RouteBoundary>
+        ),
       },
     ],
   },

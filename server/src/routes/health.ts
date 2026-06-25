@@ -164,7 +164,8 @@ router.get("/queues", async (_req: Request, res: Response) => {
   try {
     const entries: QueueHealthEntry[] = await Promise.all(
       ALL_QUEUE_NAMES.map(async (name): Promise<QueueHealthEntry> => {
-        const queue = new Queue(name, { connection: redis });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const queue = new Queue(name, { connection: redis as any });
         try {
           const raw = await withTimeout(
             queue.getJobCounts("waiting", "active", "completed", "failed", "delayed"),
